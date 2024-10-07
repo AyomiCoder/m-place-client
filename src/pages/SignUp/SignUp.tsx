@@ -1,5 +1,7 @@
-import React, { useState } from 'react'
-import { FaUser, FaEnvelope, FaLock, FaPhone, FaAddressCard } from 'react-icons/fa'
+import React, { useState } from 'react';
+import { FaUser, FaEnvelope, FaLock, FaPhone, FaAddressCard } from 'react-icons/fa';
+import axios from 'axios';
+import { useNavigate, Link } from 'react-router-dom';
 
 const Button: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'primary' | 'secondary' }> = ({ children, variant = 'primary', ...props }) => (
   <button
@@ -12,7 +14,7 @@ const Button: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement> & { variant
   >
     {children}
   </button>
-)
+);
 
 export default function SignUp() {
   const [formData, setFormData] = useState({
@@ -21,24 +23,37 @@ export default function SignUp() {
     password: '',
     phone: '',
     address: '',
-  })
+  });
+
+  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
-    })
-  }
+    });
+  };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    // Handle sign-up logic here
-  }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    try {
+      const response = await axios.post('http://localhost:5000/api/auth/signup', formData);
+      const { token } = response.data;
+      localStorage.setItem('token', token);
+      navigate('/dashboard');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Signup failed');
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
         <h2 className="text-3xl font-bold text-center text-gray-800 mb-6">Sign Up</h2>
+        {error && <p className="text-red-500 text-center">{error}</p>}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="flex items-center space-x-2">
             <FaUser className="text-gray-500" />
@@ -46,7 +61,7 @@ export default function SignUp() {
               type="text"
               name="name"
               placeholder="Name"
-              className="w-full p-2 border border-gray-300 rounded-lg"
+              className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={formData.name}
               onChange={handleChange}
               required
@@ -59,7 +74,7 @@ export default function SignUp() {
               type="email"
               name="email"
               placeholder="Email"
-              className="w-full p-2 border border-gray-300 rounded-lg"
+              className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={formData.email}
               onChange={handleChange}
               required
@@ -72,7 +87,7 @@ export default function SignUp() {
               type="password"
               name="password"
               placeholder="Password"
-              className="w-full p-2 border border-gray-300 rounded-lg"
+              className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={formData.password}
               onChange={handleChange}
               required
@@ -85,7 +100,7 @@ export default function SignUp() {
               type="tel"
               name="phone"
               placeholder="Phone"
-              className="w-full p-2 border border-gray-300 rounded-lg"
+              className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={formData.phone}
               onChange={handleChange}
               required
@@ -98,7 +113,7 @@ export default function SignUp() {
               type="text"
               name="address"
               placeholder="Address"
-              className="w-full p-2 border border-gray-300 rounded-lg"
+              className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={formData.address}
               onChange={handleChange}
               required
@@ -107,7 +122,14 @@ export default function SignUp() {
 
           <Button variant="primary">Create Account</Button>
         </form>
+
+        <p className="mt-4 text-center text-gray-600">
+          Already have an account?{' '}
+          <Link to="/login" className="text-blue-500 hover:underline">
+            Login
+          </Link>
+        </p>
       </div>
     </div>
-  )
+  );
 }
